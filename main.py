@@ -1,5 +1,6 @@
 import json
 import os
+from aiohttp import web
 from datetime import datetime
 from aiogram import Bot, Dispatcher, F, Router
 from aiogram.client.default import DefaultBotProperties
@@ -8,16 +9,12 @@ from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, InlineKe
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.filters import CommandStart, StateFilter
-import os
-port = int(os.environ.get("PORT", 8080))
 import asyncio
-import os
 from dotenv import load_dotenv
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+PORT = int(os.getenv("PORT", 8080))
 router = Router()
-
-import os
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -437,12 +434,31 @@ async def admin_reply_handler(message: Message):
     except Exception as e:
         await message.answer(f"❌ Ошибка при отправке: {e}")
 # --- Запуск бота ---
-import asyncio
+@dp.message()
+async def handle_msg(message: Message):
+    await message.answer("Бот работает!")
+
+# "Фейковый" HTTP-сервер для Render
+async def handle(request):
+    return web.Response(text="Bot is running on Render!")
+
+async def run_web_server():
+    app = web.Application()
+    app.add_routes([web.get("/", handle)])
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, host="0.0.0.0", port=PORT)
+    await site.start()
+    print(f"HTTP сервер запущен на порту {PORT}")
 
 async def main():
-    await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)
+    await asyncio.gather(
+        dp.start_polling(bot),
+        run_web_server()  # запустить фейковый сервер, чтобы Render не отключил
+    )
 
 if __name__ == "__main__":
-    asyncio.run(main())
-
+    try:
+        asyncio.run(main())
+    except (KeyboardInterrupt, SystemExit):
+        print("Остановлено")
