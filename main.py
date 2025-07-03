@@ -10,6 +10,9 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.filters import CommandStart, StateFilter
 import asyncio
 import os
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+
+import os
 from dotenv import load_dotenv
 
 load_dotenv()
