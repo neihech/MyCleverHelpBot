@@ -434,25 +434,27 @@ async def admin_reply_handler(message: Message):
         await message.answer("✅ Ответ отправлен пользователю.")
     except Exception as e:
         await message.answer(f"❌ Ошибка при отправке: {e}")
-import os
-from aiohttp import web
-from aiogram.webhook.aiohttp_server import setup_application
-
 async def on_startup(app):
     await bot.set_webhook(f"{os.getenv('RENDER_EXTERNAL_URL')}/webhook")
 
 async def on_shutdown(app):
     await bot.delete_webhook()
 
+# Создание aiohttp-приложения
 def create_app():
     app = web.Application()
     app.on_startup.append(on_startup)
     app.on_shutdown.append(on_shutdown)
-    app.router.add_post("/webhook", setup_application(dp, bot))
+
+    # 💡 Передаём dispatcher
+    app.router.add_post("/webhook", setup_application(dispatcher=dp))
     return app
 
+# Запуск
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 4000))
+    import asyncio
+
+    port = int(os.environ.get("PORT", 8000))
     web.run_app(create_app(), host="0.0.0.0", port=port)
 
 
