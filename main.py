@@ -8,6 +8,8 @@ from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, InlineKe
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.filters import CommandStart, StateFilter
+import os
+port = int(os.environ.get("PORT", 8080))
 import asyncio
 import os
 from dotenv import load_dotenv
