@@ -9,8 +9,6 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.filters import CommandStart, StateFilter
 import asyncio
-from aiohttp import web
-from aiogram.webhook.aiohttp_server import setup_application
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -437,26 +435,12 @@ async def admin_reply_handler(message: Message):
     except Exception as e:
         await message.answer(f"❌ Ошибка при отправке: {e}")
 # --- Запуск бота ---
-async def on_startup(app):
-    await bot.set_webhook(f"{os.getenv('RENDER_EXTERNAL_URL')}/webhook")
+import asyncio
 
-async def on_shutdown(app):
-    await bot.delete_webhook()
+async def main():
+    await bot.delete_webhook(drop_pending_updates=True)
+    await dp.start_polling(bot)
 
-# Создание aiohttp-приложения
-def create_app():
-    app = web.Application()
-    app.on_startup.append(on_startup)
-    app.on_shutdown.append(on_shutdown)
-
-    # 💡 Передаём dispatcher
-    app.router.add_post("/webhook", setup_application(dispatcher=dp))
-    return app
-
-# Запуск
 if __name__ == "__main__":
-    import asyncio
-
-    port = int(os.environ.get("PORT", 8000))
-    web.run_app(create_app(), host="0.0.0.0", port=port)
+    asyncio.run(main())
 
